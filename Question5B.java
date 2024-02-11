@@ -39,4 +39,6 @@ public class Question5B {
 
         System.out.println("Impacted Device List: " + impactedDevices);
     }
+
+    
 }
