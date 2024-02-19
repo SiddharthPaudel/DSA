@@ -1,67 +1,85 @@
-import java.util.*;
+
+
+import java.util.PriorityQueue;
 
 public class Question3B{
-    
-    static class Edge implements Comparable<Edge> {
-        int src, dest, weight;
 
-        Edge(int src, int dest, int weight) {
-            this.src = src;
-            this.dest = dest;
-            this.weight = weight;
+    public static class Edge implements Comparable<Edge> {
+        int s;  // source
+        int d;  // destination
+        int w;  // weight
+
+        Edge(int s, int d, int w) {
+            this.s = s;
+            this.d = d;
+            this.w = w;
         }
 
         @Override
-        public int compareTo(Edge other) {
-            return Integer.compare(this.weight, other.weight);
+        public int compareTo(Edge o) {
+            return this.w - o.w;
         }
     }
 
-    static List<Edge> minimumSpanningTree(int V, List<Edge> edges) {
-        List<Edge> MST = new ArrayList<>();
-        int[] parent = new int[V];
-        Arrays.fill(parent, -1);
+    int v;
+    PriorityQueue<Edge> pq;
 
-        Collections.sort(edges);
+    Question3B(int v) {
+        this.v = v;
+        this.pq = new PriorityQueue<>();
+    }
 
-        for (Edge edge : edges) {
-            int srcParent = find(parent, edge.src);
-            int destParent = find(parent, edge.dest);
+    void addEdge(int s, int d, int w) {
+        pq.add(new Edge(s, d, w));
+    }
 
-            if (srcParent != destParent) {
-                MST.add(edge);
-                union(parent, srcParent, destParent);
+    void kruskal() {
+        // Array to keep track of the parent of each node
+        int[] parent = new int[v];
+
+        // Initialize all vertices as belonging to different sets
+        for (int i = 0; i < v; i++) {
+            parent[i] = i;
+        }
+
+        while (!pq.isEmpty()) {
+            Edge e = pq.poll();
+            int x = find(e.s, parent);
+            int y = find(e.d, parent);
+
+            // If including this edge does't cause cycle,
+            // include it in result and union the two vertices.
+            if (x != y) {
+                System.out.println(e.s + " - " + e.d + " : " + e.w);
+                union(x, y, parent);
             }
         }
-
-        return MST;
     }
 
-    static int find(int[] parent, int x) {
-        if (parent[x] == -1)
-            return x;
-        return parent[x] = find(parent, parent[x]);
+    int find(int i, int[] parent) {
+        if (parent[i] == i) {
+            return i;
+        }
+        return parent[i] = find(parent[i], parent);
     }
 
-    static void union(int[] parent, int x, int y) {
-        int rootX = find(parent, x);
-        int rootY = find(parent, y);
-
-        parent[rootX] = rootY;
+    void union(int x, int y, int[] parent) {
+        int xset = find(x, parent);
+        int yset = find(y, parent);
+        if (xset != yset) {
+            parent[xset] = yset;
+        }
     }
 
     public static void main(String[] args) {
-        int V = 4;
-        List<Edge> edges = new ArrayList<>();
-        edges.add(new Edge(0, 1, 10));
-        edges.add(new Edge(0, 2, 6));
-        edges.add(new Edge(0, 3, 5));
-        edges.add(new Edge(1, 3, 15));
-        edges.add(new Edge(2, 3, 4));
+        Question3B graph = new Question3B(4);
 
-        List<Edge> MST = minimumSpanningTree(V, edges);
-        for (Edge edge : MST) {
-            System.out.println(edge.src + " - " + edge.dest + ": " + edge.weight);
-        }
+        graph.addEdge(0, 1, 10);
+        graph.addEdge(0, 2, 6);
+        graph.addEdge(0, 3, 5);
+        graph.addEdge(1, 3, 15);
+        graph.addEdge(2, 3, 4);
+
+        graph.kruskal();
     }
 }
