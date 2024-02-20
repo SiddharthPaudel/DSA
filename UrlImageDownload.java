@@ -41,7 +41,6 @@ class ExtendedSwingFrame extends JFrame {
         pauseButton = new JButton("Pause");
         resumeButton = new JButton("Resume");
         progressBarPanel = new JPanel(new GridLayout(0, 1));
-
         urlList = new ArrayList<>();
         progressBars = new ArrayList<>();
         workers = new ArrayList<>();
