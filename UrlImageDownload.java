@@ -18,12 +18,16 @@ class ExtendedSwingFrame extends JFrame {
     private JTextField textField;
     private JButton addUrlButton;
     private JButton downloadButton;
+    private JButton pauseButton;
+    private JButton resumeButton;
     private JPanel progressBarPanel;
 
     private ExecutorService executorService;
     private List<String> urlList;
     private List<JProgressBar> progressBars;
     private List<SwingWorker<Void, Integer>> workers;
+    
+    private boolean isPaused = false;
 
     public ExtendedSwingFrame() {
         setTitle("Extended Swing Frame");
@@ -34,6 +38,8 @@ class ExtendedSwingFrame extends JFrame {
         textField = new JTextField(20);
         addUrlButton = new JButton("Add URL");
         downloadButton = new JButton("Download Images");
+        pauseButton = new JButton("Pause");
+        resumeButton = new JButton("Resume");
         progressBarPanel = new JPanel(new GridLayout(0, 1));
 
         urlList = new ArrayList<>();
@@ -48,7 +54,7 @@ class ExtendedSwingFrame extends JFrame {
                 addProgressBar(urlList.size());
             }
         });
-        
+
         downloadButton.addActionListener(e -> {
             if (!urlList.isEmpty()) {
                 for (int i = 0; i < urlList.size(); i++) {
@@ -61,10 +67,23 @@ class ExtendedSwingFrame extends JFrame {
             }
         });
 
+        pauseButton.addActionListener(e -> {
+            isPaused = true;
+        });
+
+        resumeButton.addActionListener(e -> {
+            isPaused = false;
+            synchronized (workers) {
+                workers.notifyAll();
+            }
+        });
+
         panel.add(new JLabel("Image URL:"));
         panel.add(textField);
         panel.add(addUrlButton);
         panel.add(downloadButton);
+        panel.add(pauseButton);
+        panel.add(resumeButton);
         panel.add(progressBarPanel);
 
         getContentPane().add(panel);
@@ -137,6 +156,14 @@ class ExtendedSwingFrame extends JFrame {
                         int bytesRead;
 
                         while ((bytesRead = in.read(buffer)) != -1) {
+                            if (isPaused) {
+                                synchronized (workers) {
+                                    while (isPaused) {
+                                        workers.wait();
+                                    }
+                                }
+                            }
+
                             out.write(buffer, 0, bytesRead);
                             totalBytesRead += bytesRead;
 
